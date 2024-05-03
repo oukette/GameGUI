@@ -15,6 +15,11 @@ class Button : public Widget
         sf::RectangleShape m_button_rect;
         sf::Text m_button_text;
 
+        unsigned int m_initialFontSize;
+
+        sf::Vector2f m_relativePosition;
+        sf::Vector2f m_relativeSize;
+        
         std::function<void()> m_action;
 
         sf::Color m_normal_color;
@@ -25,8 +30,11 @@ class Button : public Widget
         bool m_isPressed;
 
     public:
-        Button(uint16_t _pos_x, uint16_t _pos_y, uint16_t _width, uint16_t _height, 
-                std::shared_ptr<sf::Font> _font, const std::string& _text, std::function<void()> _action) :
+        Button(const sf::Vector2f& _relativePosition, const sf::Vector2f& _relativeSize, 
+                std::shared_ptr<sf::Font> _font, unsigned int _fontSize, const std::string& _text, std::function<void()> _action) :
+            m_initialFontSize(_fontSize),
+            m_relativePosition(_relativePosition),
+            m_relativeSize(_relativeSize),
             m_action(_action),
             m_normal_color(UI_BUTTON_FILL_COLOR_NORMAL),
             m_hover_color(UI_BUTTON_FILL_COLOR_HOVER),
@@ -34,16 +42,24 @@ class Button : public Widget
             m_isSelected(false),
             m_isPressed(false)
         {
-            m_button_rect.setPosition(sf::Vector2f(_pos_x, _pos_y));
-            m_button_rect.setSize(sf::Vector2f(_width, _height));
+            m_button_rect.setPosition(m_relativePosition);
+            m_button_rect.setSize(m_relativeSize);
             m_button_rect.setOutlineThickness(2);
             m_button_rect.setOutlineColor(sf::Color(UI_BUTTON_OUTLINE_COLOR));
 
             m_button_text.setFont(*_font);
             m_button_text.setString(_text);
-            m_button_text.setCharacterSize(24);
+            m_button_text.setCharacterSize(_fontSize);
             m_button_text.setFillColor(sf::Color::Black);
-            m_button_text.setPosition(sf::Vector2f(_pos_x, _pos_y));
+            m_button_text.setPosition(m_relativePosition.x + m_relativeSize.x/2 - m_button_text.getGlobalBounds().width/2, 
+                                      m_relativePosition.y + m_relativeSize.y/2 - m_button_text.getGlobalBounds().height/2);
+            std::cout<< "DEBUG - " << __FUNCTION__ << "Button <" << _text << "> initialized." << std::endl;
+        }
+
+
+        unsigned int getFontSize() const
+        {
+            return m_button_text.getCharacterSize();
         }
 
 
@@ -72,6 +88,12 @@ class Button : public Widget
         }
 
 
+        void setFontSize(unsigned int fontSize)
+        {
+            m_button_text.setCharacterSize(fontSize);
+        }
+
+
         bool isClicked(sf::Event event, sf::RenderWindow &window) override 
         {
             if (event.type == sf::Event::MouseButtonPressed)
@@ -81,10 +103,8 @@ class Button : public Widget
                     if (isHovered(window))
                     {
                         m_isPressed = true;
-                        std::cout<< "Button clicked, executing action... " << std::endl;
                         m_button_rect.setFillColor(m_click_color);
-                        executeAction();
-                        return true;
+                        return false;
                     }
                 }
             }
@@ -92,7 +112,13 @@ class Button : public Widget
             {
                 if (event.mouseButton.button == sf::Mouse::Left)
                 {
-                    m_isPressed = false;
+                    if (isHovered(window))
+                    {
+                        m_isPressed = false;
+                        std::cout<< "Button clicked" << std::endl;
+                        executeAction();
+                        return true;
+                    }
                 }
             }
 
@@ -125,6 +151,12 @@ class Button : public Widget
         void setPressed(bool pressed)
         {
             m_isPressed = pressed;
+        }
+
+
+        void updatePositionAndSize(const sf::View& view, float scaleFactor)
+        {
+
         }
 
 

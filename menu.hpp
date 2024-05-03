@@ -51,7 +51,7 @@ class Menu
         }
 
 
-        const int getPressedItem()
+        const int get_pressed_item()
         {
             return m_selectedItemIndex;
         }
@@ -72,7 +72,7 @@ class Menu
         }
 
 
-        void moveUp()
+        void nav_move_up()
         {
             if (m_selectedItemIndex - 1 >= 0)
             {
@@ -95,7 +95,7 @@ class Menu
         }
 
 
-        void moveDown()
+        void nav_move_down()
         {
             if (m_selectedItemIndex + 1 < m_widgets.size())
             {
